@@ -1,39 +1,46 @@
 package com.example.studdata.controller;
 
-import com.example.studdata.dao.StudentRepository;
-import com.example.studdata.model.Student;
+import com.example.studdata.dao.FacultyRepository;
+import com.example.studdata.dao.FoundationRepository;
+import com.example.studdata.dao.ScholarshipRepository;
+import com.example.studdata.dao.StudyFormRepository;
+import com.example.studdata.model.*;
 import com.example.studdata.service.StudentService;
 import lombok.AllArgsConstructor;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
-import org.springframework.ui.Model;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Controller
 @RequestMapping("/students")
 @AllArgsConstructor
 public class StudentController {
 
-    private final StudentService service;
-    private final StudentRepository repository;
+    private final StudentService studentService;
+    private final FacultyRepository facultyRepository;
+    private final ScholarshipRepository scholarshipRepository;
+    private final FoundationRepository foundationRepository;
+    private final StudyFormRepository studyFormRepository;
 
     @GetMapping("/show")
     public String findAllStudents(Model model) {
-        List<Student> students = service.findAllStudent();
+        List<Student> students = studentService.findAllStudent();
         model.addAttribute("students", students);
         model.addAttribute("title", "Список студентов в БД");
         model.addAttribute("pageActiveHome", "nav-link");
         model.addAttribute("pageActiveAdd", "nav-link");
         model.addAttribute("pageActiveShow", "nav-link active");
-        return "students-show";
+        return "show/students-show";
     }
 
     @GetMapping("/add")
@@ -43,7 +50,7 @@ public class StudentController {
         model.addAttribute("pageActiveAdd", "nav-link active");
         model.addAttribute("pageActiveShow", "nav-link");
 
-        return "students-add";
+        return "add/students-add";
     }
 
     @PostMapping("/add")
@@ -51,38 +58,53 @@ public class StudentController {
                               @RequestParam String lastName,
                               @RequestParam String middleName,
                               @RequestParam int course,
-                              @RequestParam String faculty,
-                              @RequestParam String studyForm,
-                              @RequestParam String scholarship,
-                              @RequestParam int orderNumber,
-                              @RequestParam String orderDate,
-                              @RequestParam String issuanceEndDate,
-                              @RequestParam String foundationEndDate,
-                              @RequestParam String foundationReason, Model model) {
+                              @RequestParam Long facultyId,
+                              @RequestParam Long studyFormId,
+                              @RequestParam Long scholarshipId,
+                              @RequestParam Long foundationId,
+                              @RequestParam Long orderNumber,
+                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate orderDate,
+                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate issuanceEndDate,
+                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate foundationEndDate,
+                              Model model) {
 
-        Student student = new Student(firstName, lastName, middleName,
-                course, faculty, studyForm,
-                scholarship, orderNumber, orderDate,
-                issuanceEndDate, foundationEndDate, foundationReason);
+        Faculty faculty = facultyRepository.findById(facultyId).orElseThrow(); // Получаем объект Faculty
+        StudyForm studyForm = studyFormRepository.findById(studyFormId).orElseThrow(); // Получаем объект StudyForm
+        Scholarship scholarship = scholarshipRepository.findById(scholarshipId).orElseThrow(); // Получаем объект Scholarship
+        Foundation foundation = foundationRepository.findById(foundationId).orElseThrow(); // Получаем объект Foundation
+
+        Student student = new Student(
+                firstName,
+                lastName,
+                middleName,
+                course,
+                faculty,
+                studyForm,
+                scholarship,
+                foundation,
+                orderNumber,
+                orderDate,
+                issuanceEndDate,
+                foundationEndDate
+        );
 
         model.addAttribute("title", "Добавление студента");
         model.addAttribute("pageActiveHome", "nav-link");
         model.addAttribute("pageActiveAdd", "nav-link active");
         model.addAttribute("pageActiveShow", "nav-link");
 
-        service.saveStudent(student);
+        studentService.saveStudent(student);
 
-
-        return "students-add";
+        return "add/students-add";
     }
 
     @GetMapping("/edit/{id}")
     public String updateStudent(@PathVariable(value = "id") long id, Model model) {
-        if(!service.existsStudentsById(id)) {
+        if(!studentService.existsStudentsById(id)) {
             return "redirect:/students/show";
         }
 
-        Optional<Student> student = service.findStudentById(id);
+        Optional<Student> student = studentService.findStudentById(id);
         ArrayList<Student> res = new ArrayList<>();
         student.ifPresent(res::add);
         model.addAttribute("students", res);
@@ -91,7 +113,7 @@ public class StudentController {
         model.addAttribute("pageActiveAdd", "nav-link active");
         model.addAttribute("pageActiveShow", "nav-link");
 
-        return "/students-edit";
+        return "add/students-edit";
     }
 
     @PostMapping("/edit/{id}")
@@ -100,25 +122,43 @@ public class StudentController {
                                     @RequestParam String lastName,
                                     @RequestParam String middleName,
                                     @RequestParam int course,
-                                    @RequestParam String faculty,
-                                    @RequestParam String studyForm,
-                                    @RequestParam String scholarship,
-                                    @RequestParam int orderNumber,
-                                    @RequestParam String orderDate,
-                                    @RequestParam String issuanceEndDate,
-                                    @RequestParam String foundationEndDate,
-                                    @RequestParam String foundationReason, Model model) {
+                                    @RequestParam Long facultyId,
+                                    @RequestParam Long studyFormId,
+                                    @RequestParam Long scholarshipId,
+                                    @RequestParam Long foundationId,
+                                    @RequestParam Long orderNumber,
+                                    @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate orderDate,
+                                    @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate issuanceEndDate,
+                                    @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate foundationEndDate,
+                                    Model model) {
 
-        Student student = new Student(id, firstName, lastName, middleName,
-                course, faculty, studyForm, scholarship, orderNumber,
-                orderDate, issuanceEndDate, foundationEndDate, foundationReason);
+        Faculty faculty = facultyRepository.findById(facultyId).orElseThrow(); // Получаем объект Faculty
+        StudyForm studyForm = studyFormRepository.findById(studyFormId).orElseThrow(); // Получаем объект StudyForm
+        Scholarship scholarship = scholarshipRepository.findById(scholarshipId).orElseThrow(); // Получаем объект Scholarship
+        Foundation foundation = foundationRepository.findById(foundationId).orElseThrow(); // Получаем объект Foundation
+
+        Student student = new Student(
+                id,
+                firstName,
+                lastName,
+                middleName,
+                course,
+                faculty,
+                studyForm,
+                scholarship,
+                foundation,
+                orderNumber,
+                orderDate,
+                issuanceEndDate,
+                foundationEndDate
+        );
 
         model.addAttribute("title", "Редактирование студента");
         model.addAttribute("pageActiveHome", "nav-link");
         model.addAttribute("pageActiveAdd", "nav-link active");
         model.addAttribute("pageActiveShow", "nav-link");
 
-        service.updateStudent(student);
+        studentService.saveStudent(student);
 
         return "redirect:/students/show";
     }
@@ -127,8 +167,8 @@ public class StudentController {
 
     @PostMapping("/delete/{id}")
     public String deleteStudent(@PathVariable(value = "id") long id, Model model) {
-        Student student = service.findStudentById(id).orElseThrow();
-        service.deleteStudent(student);
+        Student student = studentService.findStudentById(id).orElseThrow();
+        studentService.deleteStudent(student);
 
         return "redirect:/students/show";
     }
@@ -136,7 +176,7 @@ public class StudentController {
     @GetMapping("show/search/{name}")
     public String searchStudent(@PathVariable(value = "name") String name, Model model) {
 
-        List<Student> students = service.findStudentsByFirstNameOrLastNameOrMiddleName(name, name, name);
+        List<Student> students = studentService.findStudentsByFirstNameOrLastNameOrMiddleName(name, name, name);
 
         model.addAttribute("students", students);
         model.addAttribute("title", "Список студентов в БД");
@@ -144,36 +184,52 @@ public class StudentController {
         model.addAttribute("pageActiveAdd", "nav-link");
         model.addAttribute("pageActiveShow", "nav-link active");
 
-        return "/students-show";
+        return "show/students-show";
     }
-
     @GetMapping("show/filter")
-    public String filterStudents(@RequestParam(value = "faculty", required = false) String faculty,
-                                     @RequestParam(value = "scholarship", required = false) String scholarship,
-                                     @RequestParam(value = "studyForm", required = false) String studyForm,
-                                     @RequestParam(value = "foundationReason", required = false) String foundationReason,
-                                     @RequestParam(value = "sortColumn", required = false) String sortColumn,
-                                     @RequestParam(value = "sortDirection", required = false) String sortDirection, Model model) {
+    public String filterStudents(@RequestParam(value = "faculty", required = false) Optional<Long> facultyId,
+                                 @RequestParam(value = "scholarship", required = false) Optional<Long> scholarshipId,
+                                 @RequestParam(value = "studyForm", required = false) Optional<Long> studyFormId,
+                                 @RequestParam(value = "foundation", required = false) Optional<Long> foundationId,
+                                 @RequestParam(value = "sortColumn", required = false) String sortColumn,
+                                 @RequestParam(value = "sortDirection", required = false) String sortDirection, Model model) {
         Specification<Student> spec = Specification.where(null);
 
-        if (faculty != null && !faculty.isEmpty()) {
+        Faculty faculty = facultyId.map(id -> facultyRepository.findById(id).orElse(null)).orElse(null);
+        StudyForm studyForm = studyFormId.map(id -> studyFormRepository.findById(id).orElse(null)).orElse(null);
+        Scholarship scholarship = scholarshipId.map(id -> scholarshipRepository.findById(id).orElse(null)).orElse(null);
+        Foundation foundation = foundationId.map(id -> foundationRepository.findById(id).orElse(null)).orElse(null);
+
+        if (faculty != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("faculty"), faculty));
+                    criteriaBuilder.or(
+                            criteriaBuilder.equal(root.get("faculty"), faculty),
+                            criteriaBuilder.isNull(root.get("faculty"))
+                    ));
         }
 
-        if (scholarship != null && !scholarship.isEmpty()) {
+        if (scholarship != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("scholarship"), scholarship));
+                    criteriaBuilder.or(
+                            criteriaBuilder.equal(root.get("scholarship"), scholarship),
+                            criteriaBuilder.isNull(root.get("scholarship"))
+                    ));
         }
 
-        if (studyForm != null && !studyForm.isEmpty()) {
+        if (studyForm != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("studyForm"), studyForm));
+                    criteriaBuilder.or(
+                            criteriaBuilder.equal(root.get("studyForm"), studyForm),
+                            criteriaBuilder.isNull(root.get("studyForm"))
+                    ));
         }
 
-        if (foundationReason != null && !foundationReason.isEmpty()) {
+        if (foundation != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("foundationReason"), foundationReason));
+                    criteriaBuilder.or(
+                            criteriaBuilder.equal(root.get("foundation"), foundation),
+                            criteriaBuilder.isNull(root.get("foundation"))
+                    ));
         }
 
         Sort sort = null;
@@ -183,9 +239,9 @@ public class StudentController {
 
         List<Student> students;
         if (sort != null) {
-            students = service.findAll(spec, sort);
+            students = studentService.findAll(spec, sort);
         } else {
-            students = service.findAll(spec);
+            students = studentService.findAll(spec);
         }
         model.addAttribute("students", students);
         model.addAttribute("title", "Список студентов в БД");
@@ -193,14 +249,13 @@ public class StudentController {
         model.addAttribute("pageActiveAdd", "nav-link");
         model.addAttribute("pageActiveShow", "nav-link active");
 
-        return "students-show";
+        return "show/students-show";
     }
 
     @GetMapping("show/check")
     public String checkDateOfStudents(Model model) {
         LocalDate currentDate = LocalDate.now();
-        String currentDateString = currentDate.toString();
-        List<Student> students = service.findStudentsByIssuanceEndDateAfter(currentDateString);
+        List<Student> students = studentService.findStudentsByIssuanceEndDateAfter(currentDate);
 
         model.addAttribute("students", students);
         model.addAttribute("title", "Список студентов в БД");
@@ -208,7 +263,16 @@ public class StudentController {
         model.addAttribute("pageActiveAdd", "nav-link");
         model.addAttribute("pageActiveShow", "nav-link active");
 
-        return "students-show";
+        return "show/students-show";
+    }
+
+    @PostMapping("show/deleteStudents")
+    public String deleteCheckedStudents(@RequestParam("selectedStudents") List<Long> selectedStudentIds, Model model) {
+        for (Long studentId : selectedStudentIds) {
+            studentService.deleteStudentById(studentId);
+        }
+
+        return "redirect:/students/show";
     }
 
 

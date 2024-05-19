@@ -6,6 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" media="all"
+          href="../../css/style.css" th:href="@{/css/style.css}" />
     <title th:text="${title}"/>
 </head>
 <body>
@@ -25,34 +27,34 @@
 
             <input type="number" th:value="${el.course}" name="course" placeholder="Курс" class="form-control mt-2" required>
 
-            <select name="faculty" class="form-select mt-2" required>
-                <option value="Биологический" th:selected="${el.faculty} == 'Биологический'">Биологический</option>
-                <option value="Востоковедения" th:selected="${el.faculty} == 'Востоковедения'">Востоковедения</option>
-                <option value="Физкультурный" th:selected="${el.faculty} == 'Физкультурный'">Физкультурный</option>
-                <option value="Социальный" th:selected="${el.faculty} == 'Социальный'">Социальный</option>
-                <option value="Исторический" th:selected="${el.faculty} == 'Исторический'">Исторический</option>
-                <option value="ФИЯ" th:selected="${el.faculty} == 'ФИЯ'">ФИЯ</option>
-                <option value="ФИиИТ" th:selected="${el.faculty} == 'ФИиИТ'">ФИиИТ</option>
-                <option value="Культуры" th:selected="${el.faculty} == 'Культуры'">Культуры</option>
-                <option value="Математический" th:selected="${el.faculty} == 'Математический'">Математический</option>
-                <option value="Психологии и философии" th:selected="${el.faculty} == 'Психологии и философии'">Психологии и философии</option>
-                <option value="Физический" th:selected="${el.faculty} == 'Физический'">Физический</option>
-                <option value="Филологический" th:selected="${el.faculty} == 'Филологический'">Филологический</option>
-                <option value="Химический" th:selected="${el.faculty} == 'Химический'">Химический</option>
-                <option value="Экологии" th:selected="${el.faculty} == 'Экологии'">Экологии</option>
-                <option value="Экономики" th:selected="${el.faculty} == 'Экономики'">Экономики</option>
-                <option value="Юридический" th:selected="${el.faculty} == 'Юридический'">Юридический</option>
+            <select name="facultyId" class="form-select mt-2" required>
+                <option value="1" th:selected="${el.faculty?.name} == 'Биологический'">Биологический</option>
+                <option value="2" th:selected="${el.faculty?.name} == 'Востоковедения'">Востоковедения</option>
+                <option value="3" th:selected="${el.faculty?.name} == 'Физкультурный'">Физкультурный</option>
+                <option value="4" th:selected="${el.faculty?.name} == 'Социальный'">Социальный</option>
+                <option value="5" th:selected="${el.faculty?.name} == 'Исторический'">Исторический</option>
+                <option value="6" th:selected="${el.faculty?.name} == 'ФИЯ'">ФИЯ</option>
+                <option value="7" th:selected="${el.faculty?.name} == 'ФИиИТ'">ФИиИТ</option>
+                <option value="8" th:selected="${el.faculty?.name} == 'Культуры'">Культуры</option>
+                <option value="9" th:selected="${el.faculty?.name} == 'Математический'">Математический</option>
+                <option value="10" th:selected="${el.faculty?.name} == 'Психологии и философии'">Психологии и философии</option>
+                <option value="11" th:selected="${el.faculty?.name} == 'Физический'">Физический</option>
+                <option value="12" th:selected="${el.faculty?.name} == 'Филологический'">Филологический</option>
+                <option value="13" th:selected="${el.faculty?.name} == 'Химический'">Химический</option>
+                <option value="14" th:selected="${el.faculty?.name} == 'Экологии'">Экологии</option>
+                <option value="15" th:selected="${el.faculty?.name} == 'Экономики'">Экономики</option>
+                <option value="16" th:selected="${el.faculty?.name} == 'Юридический'">Юридический</option>
             </select>
 
 
-            <select name="studyForm" class="form-select mt-2" required>
-                <option value="Бакалавриат" th:selected="${el.studyForm} == 'Бакалавриат'">Бакалавриат</option>
-                <option value="Магистратура" th:selected="${el.studyForm} == 'Магистратура'">Магистратура</option>
+            <select name="studyFormId" class="form-select mt-2" required>
+                <option value="1" th:selected="${el.studyForm?.name} == 'Бакалавриат'">Бакалавриат</option>
+                <option value="2" th:selected="${el.studyForm?.name} == 'Магистратура'">Магистратура</option>
             </select>
 
-            <select name="scholarship" class="form-select mt-2" required>
-                <option value="Социальная" th:selected="${el.scholarship} == 'Социальная'">Социальная</option>
-                <option value="В повышенном размере" th:selected="${el.scholarship} == 'В повышенном размере'">В повышенном размере</option>
+            <select name="scholarshipId" class="form-select mt-2" required>
+                <option value="1" th:selected="${el.scholarship?.name} == 'Социальная'">Социальная</option>
+                <option value="2" th:selected="${el.scholarship?.name} == 'В повышенном размере'">В повышенном размере</option>
             </select>
 
             <input type="number" th:value="${el.orderNumber}" name="orderNumber" placeholder="Номер приказа" class="form-control mt-2" required>
@@ -74,10 +76,10 @@
                 </div>
             </div>
 
-            <select name="foundationReason" class="form-select mt-4" required>
-                <option value="УСЗН" th:selected="${el.foundationReason} == 'УСЗН'">УСЗН</option>
-                <option value="Инвалидность" th:selected="${el.foundationReason} == 'Инвалидность'">Инвалидность</option>
-                <option value="Постановление" th:selected="${el.foundationReason} == 'Постановление'">Постановление</option>
+            <select name="foundationId" class="form-select mt-4" required>
+                <option value="1" th:selected="${el.foundation?.name} == 'УСЗН'">УСЗН</option>
+                <option value="2" th:selected="${el.foundation?.name} == 'Инвалидность'">Инвалидность</option>
+                <option value="3" th:selected="${el.foundation?.name} == 'Постановление'">Постановление</option>
             </select>
 
             <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="checkFormAndOpenModal()">

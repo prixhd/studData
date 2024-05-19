@@ -1,29 +1,37 @@
 package com.example.studdata.controller;
 
+import com.example.studdata.model.Student;
+import com.example.studdata.service.StudentService;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.ui.Model;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Controller
+@AllArgsConstructor
 public class HttpController {
+    private final StudentService service;
 
     @GetMapping("/")
     public String homeStudentPage(Model model) {
+        LocalDate currentDate = LocalDate.now();
+        List<Student> students = service.findStudentsByIssuanceEndDateAfter(currentDate);
+
+        long countStudents = service.count();
+        long countStudentsByIssuanceEndDateAfter = students.size();
+
+
         model.addAttribute("title", "Студенческая база данных");
         model.addAttribute("pageActiveHome", "nav-link active");
         model.addAttribute("pageActiveAdd", "nav-link");
         model.addAttribute("pageActiveShow", "nav-link");
-        return "index";
-    }
+        model.addAttribute("countStudents", countStudents);
+        model.addAttribute("countStudentsByIssuanceEndDateAfter", countStudentsByIssuanceEndDateAfter);
 
-    @GetMapping("/add")
-    public String addStudentPage(Model model) {
-        model.addAttribute("title", "Добавление студента в бд");
-        model.addAttribute("pageActiveHome", "nav-link");
-        model.addAttribute("pageActiveAdd", "nav-link active");
-        model.addAttribute("pageActiveShow", "nav-link");
-        return "add";
+        return "students-home";
     }
 }

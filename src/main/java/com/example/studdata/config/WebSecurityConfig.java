@@ -33,4 +33,11 @@ public class WebSecurityConfig {
 
         return http.build();
     }
+
+    @Bean
+    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http.authorizeHttpRequests((authorizeRequests) -> authorizeRequests.anyRequest().permitAll())
+                .csrf().disable().build();
+    }
+
 }

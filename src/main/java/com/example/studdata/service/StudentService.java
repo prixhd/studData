@@ -25,6 +25,6 @@ public interface StudentService{
     List<Student> findStudentsByFirstNameOrLastNameOrMiddleName(String firstName, String lastName, String middleName);
     List<Student> findAll(Specification<Student> spec, Sort sort);
     List<Student> findAll(Specification<Student> spec);
-    List<Student> findStudentsByIssuanceEndDateAfter(String currentDate);
-
+    List<Student> findStudentsByIssuanceEndDateAfter(LocalDate currentDate);
+    long count();
 }
